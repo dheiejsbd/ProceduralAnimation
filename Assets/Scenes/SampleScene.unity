@@ -359,8 +359,9 @@ MonoBehaviour:
   body: {fileID: 2992459324528147291, guid: af577dece06694043b11e3be9d8f01fc, type: 3}
   bodyCount: 30
   bodySize: 0.7
-  rotateSpeed: 2
-  showBone: 0
+  gap: 30
+  minimumDist: 0.01
+  lerpSpeed: 10
 --- !u!1 &526274846
 GameObject:
   m_ObjectHideFlags: 0

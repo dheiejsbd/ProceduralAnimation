@@ -109,7 +109,7 @@ public class IKBodySolver : MonoBehaviour
         newNormal = Vector3.Cross(forward * rightLeft, inclination);
     }
 
-    private void OnDrawGizmos()
+    private void OnDrawGizmosSelected()
     {
         Debug.DrawRay(body.position, newNormal * 10, Color.green);
         Debug.DrawRay(body.position, Vector3.up * 10, Color.red);

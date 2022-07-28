@@ -6,51 +6,74 @@ public class BodyController : MonoBehaviour
 {
     [SerializeField] GameObject body;
     [SerializeField] int bodyCount;
-    [SerializeField] float bodySize;
-    [SerializeField] float rotateSpeed = 1;
-    [SerializeField] bool showBone;
+    [SerializeField] public float bodySize = 1f;
 
-    Transform[] bodys;
-    
+    [SerializeField] int gap = 10;
+    [SerializeField] float minimumDist = 1f;
+    [SerializeField] float lerpSpeed;
+
+    Body bodyTail = null;
+    Body bodyhead;
+    Vector3 lastHeadPos;
+
     private void Start()
     {
-        bodys = new Transform[bodyCount];
         for (int i = 0; i < bodyCount; i++)
         {
-            bodys[i] = Instantiate(body, transform).transform;
-            if(i != 0) bodys[i].transform.position = bodys[i - 1].transform.position - bodys[i - 1].transform.forward * bodySize;
-            bodys[i].GetComponentInChildren<IKBodySolver>().OnInitialize(i ==0? null: bodys[i-1].Find("Root"));
+            GameObject obj = Instantiate(body, transform);
+            if (i != 0) obj.transform.position = bodyhead.tr.position - bodyhead.tr.forward * bodySize * i;
+            obj.GetComponentInChildren<IKBodySolver>().OnInitialize(i == 0 ? null : bodyTail.tr.Find("Root"));
+
+            bodyTail = new Body(bodyTail, obj.transform, gap, lerpSpeed);
+
+            if (i == 0)
+            {
+                lastHeadPos = obj.transform.position;
+                bodyhead = bodyTail;
+            }
         }
-        bodys[0].gameObject.AddComponent<move>();
+        bodyhead.tr.gameObject.AddComponent<move>();
     }
 
-    public void Update()
+    private void Update()
     {
-        for (int i = 1; i < bodyCount; i++)
+        Body body = bodyTail;
+
+        while (body.parent != null)
         {
-            Transform parent = bodys[i - 1];
-            Transform target = bodys[i];
-
-            Vector3 parentPos = parent.position - parent.forward * bodySize / 2;
-            Vector3 targetPos = target.position + target.forward * bodySize / 2;
-            Vector3 deltaPos = parentPos - targetPos;
-            target.position += deltaPos;
-
-            deltaPos.y = 0;
-            Quaternion targetAngle = Quaternion.Lerp(target.rotation, parent.rotation, Time.deltaTime * rotateSpeed);
-            target.rotation = targetAngle;
+            body.Update();
+            body = body.parent;
         }
     }
+    void FixedUpdate()
+    {
+        if (Vector3.Distance(bodyhead.tr.position, lastHeadPos) < minimumDist) return;
+        lastHeadPos = bodyhead.tr.position;
+        Body body = bodyTail;
 
+        while (body.parent != null)
+        {
+            body.SetTarget(body.positionsHistory[0], body.rotateHistory[0]);
+            body.positionsHistory.RemoveAt(0);
+            body.positionsHistory.Add(body.parent.tr.position);
+            body.rotateHistory.RemoveAt(0);
+            body.rotateHistory.Add(body.parent.tr.rotation);
+            body = body.parent;
+        }
+    }
     private void OnDrawGizmos()
     {
         if (!Application.isPlaying) return;
-        Gizmos.color = Color.blue;
-        for (int i = 1; i < bodyCount; i++)
+        Body body = bodyTail;
+
+        while (body.parent != null)
         {
-            Transform parent = bodys[i - 1];
-            Transform target = bodys[i];
-            Gizmos.DrawLine(parent.position, target.position);
+            Gizmos.color = Color.black;
+            for (int i = 1; i < body.positionsHistory.Count; i++)
+            {
+                Gizmos.DrawLine(body.positionsHistory[i - 1], body.positionsHistory[i]);
+            }
+            body = body.parent;
         }
     }
 }

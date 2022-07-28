@@ -99,7 +99,7 @@ public class IKFootSolver : MonoBehaviour
         return hit;
     }
 
-    private void OnDrawGizmos()
+    private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.red;
         Gizmos.DrawSphere(GetPos().point, gizmosSize);

@@ -2,21 +2,22 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[RequireComponent(typeof(CharacterController))]
 public class move : MonoBehaviour
 {
     // Start is called before the first frame update
     public float speed = 1;
     public float rspeed = 60;
-
+    CharacterController characterController;
     void Start()
     {
-        
+        characterController = GetComponent<CharacterController>();
     }
 
     // Update is called once per frame
     void Update()
     {
-        transform.Translate(Vector3.forward * speed * Time.deltaTime);
+        characterController.Move(transform.forward * speed * Time.deltaTime + Vector3.down * Time.deltaTime * 9.81f);
 
 
         int i = 0;

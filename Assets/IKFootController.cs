@@ -8,7 +8,7 @@ public class IKFootController:MonoBehaviour
     [SerializeField] IKFootSolver RIKFoot;
     [SerializeField] IKBodySolver IKBody;
     bool firstL;
-    bool moving;
+    bool footMoving;
     public void Start()
     {
         LIKFoot.Initialize();
@@ -26,26 +26,36 @@ public class IKFootController:MonoBehaviour
     {
         if (RIKFoot.isMoving || LIKFoot.isMoving) return;
 
-        if(moving)
+        if(footMoving)
         {
-            moving = false;
+            //발 이동이 끝난후 몸을 이동시키기 위함
+            footMoving = false;
             IKBody.Set();
         }
 
+        if (firstL) MoveLeft(); else MoveRight();
+        if (!firstL) MoveRight(); else MoveLeft();
+
+    }
+
+    void MoveLeft()
+    {
         if (!RIKFoot.IsFoward() && RIKFoot.F)
         {
-            Debug.Log("L");
             RIKFoot.F = false;
             LIKFoot.Move();
-            moving = true;
+            footMoving = true;
             return;
         }
+    }
+
+    void MoveRight()
+    {
         if (!LIKFoot.IsFoward() && LIKFoot.F)
         {
-            Debug.Log("R");
             LIKFoot.F = false;
             RIKFoot.Move();
-            moving = true;
+            footMoving = true;
             return;
         }
     }
