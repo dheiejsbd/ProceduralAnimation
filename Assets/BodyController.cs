@@ -7,6 +7,7 @@ public class BodyController : MonoBehaviour
     [SerializeField] GameObject body;
     [SerializeField] int bodyCount;
     [SerializeField] public float bodySize = 1f;
+    [SerializeField] bool madeHead = false;
 
     [SerializeField] int gap = 10;
     [SerializeField] float minimumDist = 1f;
@@ -18,6 +19,10 @@ public class BodyController : MonoBehaviour
 
     private void Start()
     {
+        StartCoroutine(delay());
+    }
+    IEnumerator delay()
+    {
         for (int i = 0; i < bodyCount; i++)
         {
             GameObject obj = Instantiate(body, transform);
@@ -26,13 +31,14 @@ public class BodyController : MonoBehaviour
 
             bodyTail = new Body(bodyTail, obj.transform, gap, lerpSpeed);
 
-            if (i == 0)
+            if (i == 0 && madeHead)
             {
                 lastHeadPos = obj.transform.position;
                 bodyhead = bodyTail;
+                bodyhead.tr.gameObject.AddComponent<move>().Initialize();
+                yield return null;
             }
         }
-        bodyhead.tr.gameObject.AddComponent<move>();
     }
 
     private void Update()

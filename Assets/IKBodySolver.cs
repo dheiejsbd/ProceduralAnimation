@@ -11,12 +11,14 @@ public class IKBodySolver : MonoBehaviour
     [SerializeField] Transform[] legEnds;
     [SerializeField] float moveSpeed;
     Transform parent;
+    float parentY;
     float oldPos, currentPos, newPos;
     Vector3 oldNormal, currentNormal, newNormal;
     float lerp = 0;
     public void OnInitialize(Transform parent)
     {
         this.parent = parent;
+        parentY = parent == null? 0: parent.position.y;
         oldPos = currentPos = newPos = target.position.y;
     }
 
@@ -35,10 +37,11 @@ public class IKBodySolver : MonoBehaviour
             currentPos = newPos;
             currentNormal = newNormal;
         }
-        target.position = new Vector3(target.position.x, currentPos, target.position.z);
+        Vector3 offset = parent == null? Vector3.zero : Vector3.up * (body.position.y - parentY);
+        target.position = new Vector3(target.position.x, currentPos, target.position.z) + offset;
         var up = currentNormal;
 
-        var forward = parent == null ? body.forward : parent.position - target.position;
+        var forward = parent == null ? normal() : parent.position - target.position;
         var right = -Vector3.Cross(forward, currentNormal);
         Matrix4x4 M = new Matrix4x4();
         M.SetColumn(0, right);
@@ -50,7 +53,12 @@ public class IKBodySolver : MonoBehaviour
     }
 
 
-
+    Vector3 normal()
+    {
+        RaycastHit hit;
+        Physics.Raycast(transform.position, Vector3.down * 2, out hit, LayerMask.NameToLayer("Ground"));
+        return transform.forward + hit.normal;
+    }
 
     public static Quaternion QuaternionFromMatrix(Matrix4x4 m)
     {
@@ -73,7 +81,7 @@ public class IKBodySolver : MonoBehaviour
 
         oldPos = transform.position.y;
         newPos = sum + offset;
-
+        if(parent != null) parentY = body.position.y;
 
         float left = 0, right = 0;
         int leftCount = 0, rightCount = 0;
@@ -105,7 +113,7 @@ public class IKBodySolver : MonoBehaviour
         inclination += body.up * Mathf.Abs(right - left);
 
         oldNormal = target.up;
-        var forward = parent == null ? body.forward : parent.position - target.position;
+        var forward = parent == null ? normal() : parent.position - target.position;
         newNormal = Vector3.Cross(forward * rightLeft, inclination);
     }
 
@@ -116,7 +124,7 @@ public class IKBodySolver : MonoBehaviour
         Debug.DrawRay(body.position, target.up * 10, Color.blue);
 
 
-        var forward = parent == null ? body.forward : parent.position - target.position;
+        var forward = parent == null ? normal() : parent.position - target.position;
         Debug.DrawRay(target.position, forward, Color.cyan);
 
         Debug.DrawRay(body.position, newNormal* 10, Color.green);

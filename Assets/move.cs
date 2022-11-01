@@ -9,9 +9,11 @@ public class move : MonoBehaviour
     public float speed = 1;
     public float rspeed = 60;
     CharacterController characterController;
-    void Start()
+    public void Initialize()
     {
         characterController = GetComponent<CharacterController>();
+        characterController.height = 0;
+        characterController.Move(Vector3.zero);
     }
 
     // Update is called once per frame
